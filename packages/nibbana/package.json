@@ -1,0 +1,50 @@
+{
+  "name": "nibbana",
+  "version": "0.0.1",
+  "description": "Log stuff to your server in your react native app.",
+  "author": {
+    "name": "Jan Soendermann",
+    "email": "jan.soendermann+npm@gmail.com"
+  },
+  "homepage": "https://github.com/jsoendermann/nibbana",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jsoendermann/nibbana.git"
+  },
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "prepare": "npm run build",
+    "test": "jest"
+  },
+  "main": "index.js",
+  "typings": "index.d.ts",
+  "devDependencies": {
+    "@types/jest": "^20.0.7",
+    "@types/lodash.merge": "^4.6.3",
+    "@types/react-native": "^0.47.6",
+    "jest": "^20.0.4",
+    "prettier": "^1.5.3",
+    "ts-jest": "^20.0.10",
+    "typescript": "^2.4.2"
+  },
+  "dependencies": {
+    "axios": "^0.16.2",
+    "fresh-id": "^1.1.0",
+    "lodash.merge": "^4.6.0",
+    "semaphore-async-await": "^1.5.1"
+  },
+  "peerDependencies": {
+    "react-native": "^0.47.2"
+  },
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": ["ts", "tsx", "js", "json"],
+    "testPathIgnorePatterns": ["/node_modules/", "/__tests__/utils/"],
+    "mapCoverage": true
+  }
+}

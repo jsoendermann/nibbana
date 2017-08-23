@@ -1,0 +1,4 @@
+.vscode
+.gitignore
+tsconfig.json
+index.ts
