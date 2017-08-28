@@ -1,6 +1,6 @@
 {
   "name": "nibbana",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Log stuff to your server in your react native app.",
   "author": {
     "name": "Jan Soendermann",
@@ -43,8 +43,16 @@
       ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
     "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
-    "moduleFileExtensions": ["ts", "tsx", "js", "json"],
-    "testPathIgnorePatterns": ["/node_modules/", "/__tests__/utils/"],
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "json"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/__tests__/utils/"
+    ],
     "mapCoverage": true
   }
 }
