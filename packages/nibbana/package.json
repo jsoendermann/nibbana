@@ -1,6 +1,6 @@
 {
   "name": "nibbana",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Log stuff to your server in your react native app.",
   "author": {
     "name": "Jan Soendermann",
@@ -18,8 +18,8 @@
     "prepare": "npm run build",
     "test": "jest"
   },
-  "main": "index.js",
-  "typings": "index.d.ts",
+  "main": "./dist/index.js",
+  "typings": "./dist/index.d.ts",
   "devDependencies": {
     "@types/jest": "^20.0.7",
     "@types/lodash.merge": "^4.6.3",
