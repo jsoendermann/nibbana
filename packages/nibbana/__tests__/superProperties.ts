@@ -1,10 +1,11 @@
+import { Entry } from 'nibbana-types'
+
 import nibbana from '../src'
 import AsyncStorageMock from './utils/AsyncStorageMock'
-import { Entry } from '../src/types'
 
 describe('super properties', () => {
   it('should have empty default super properties', () => {
-    nibbana.configure({
+    nibbana.configureWithCustomUploadFunction({
       outputToConsole: false,
       uploadEntries: async (entries: Entry[]) => {
         expect(entries[0].superProperties).toEqual({})
@@ -16,7 +17,7 @@ describe('super properties', () => {
   })
 
   it('should set super properties', () => {
-    nibbana.configure({
+    nibbana.configureWithCustomUploadFunction({
       outputToConsole: false,
       uploadEntries: async (entries: Entry[]) => {
         expect(entries[0].superProperties).toEqual({ foo: 'bar' })
@@ -29,7 +30,7 @@ describe('super properties', () => {
   })
 
   it('should extends super properties', () => {
-    nibbana.configure({
+    nibbana.configureWithCustomUploadFunction({
       outputToConsole: false,
       uploadEntries: async (entries: Entry[]) => {
         expect(entries[0].superProperties).toEqual({ foo: 'bar', abc: 'def' })
@@ -43,7 +44,7 @@ describe('super properties', () => {
   })
 
   it('should clear super properties', () => {
-    nibbana.configure({
+    nibbana.configureWithCustomUploadFunction({
       outputToConsole: false,
       uploadEntries: async (entries: Entry[]) => {
         expect(entries[0].superProperties).toEqual({})

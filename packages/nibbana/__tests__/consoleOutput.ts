@@ -1,5 +1,7 @@
 import AsyncStorageMock from './utils/AsyncStorageMock'
 
+declare const global: any
+
 describe('console logging', () => {
   it('should log normally in dev mode', async () => {
     const globalObject = global as any
@@ -9,18 +11,17 @@ describe('console logging', () => {
     globalObject.process.env.NODE_ENV = 'development'
     const nibbana = require('../src').default
 
-    const log = console.log
-    console.log = jest.fn()
+    const spy = jest.spyOn(globalObject.console, 'log')
 
-    nibbana.configure({
+    nibbana.configureWithCustomUploadFunction({
       uploadEntries: () => null,
       asyncStorage: new AsyncStorageMock(),
     })
 
-    nibbana.log('DEV')
+    nibbana.log('This is to make sure log works')
 
-    expect(console.log).toHaveBeenCalled()
-    console.log = log
+    expect(spy).not.toHaveBeenCalled()
+    spy.mockRestore()
   })
 
   it('should not log in production mode', async () => {
@@ -54,7 +55,7 @@ describe('console logging', () => {
 
     const spy = jest.spyOn(globalObject.console, 'log')
 
-    nibbana.configure({
+    nibbana.configureWithCustomUploadFunction({
       outputToConsole: false,
       uploadEntries: () => null,
       asyncStorage: new AsyncStorageMock(),

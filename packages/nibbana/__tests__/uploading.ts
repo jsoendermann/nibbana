@@ -1,7 +1,8 @@
+import { Entry } from 'nibbana-types'
+import { getArray } from 'react-native-async-storage-utils'
+
 import AsyncStorageMock from './utils/AsyncStorageMock'
 import nibbana from '../src'
-import { Entry } from '../src/types'
-import { getArray } from '../src/asyncStorageUtils'
 
 const ASYNC_STORAGE_KEY = 'com.primlo.nibbana.logEntries'
 
@@ -10,7 +11,7 @@ const wait = (ms: number) => new Promise(r => setTimeout(r, ms))
 describe('should upload', async () => {
   it('should log the severity level', async () => {
     const asyncStorage = new AsyncStorageMock()
-    nibbana.configure({
+    nibbana.configureWithCustomUploadFunction({
       outputToConsole: false,
       uploadEntries: async (entries: Entry[]) => {
         expect(entries).toHaveLength(3)
@@ -27,7 +28,7 @@ describe('should upload', async () => {
 
   it('should remove entries after uploading', async () => {
     const asyncStorage = new AsyncStorageMock()
-    nibbana.configure({
+    nibbana.configureWithCustomUploadFunction({
       outputToConsole: false,
       uploadEntries: async (entries: Entry[]) => {},
       asyncStorage,
@@ -48,7 +49,7 @@ describe('should upload', async () => {
     let isFirstUpload = true
     let beforeUploads = new Date()
     const asyncStorage = new AsyncStorageMock()
-    nibbana.configure({
+    nibbana.configureWithCustomUploadFunction({
       outputToConsole: false,
       uploadEntries: async (entries: Entry[]) => {
         await wait(500)

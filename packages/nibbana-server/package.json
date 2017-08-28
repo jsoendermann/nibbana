@@ -8,7 +8,9 @@
     "build": "tsc"
   },
   "dependencies": {
+    "@types/koa-bodyparser": "^3.0.24",
     "koa": "^2.3.0",
+    "koa-bodyparser": "^4.2.0",
     "koa-mount": "^3.0.0",
     "nibbana-koa-middleware": "^0.0.8"
   },

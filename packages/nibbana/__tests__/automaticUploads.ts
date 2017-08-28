@@ -1,6 +1,7 @@
+import { Entry } from 'nibbana-types'
+
 import AsyncStorageMock from './utils/AsyncStorageMock'
 import nibbana from '../src'
-import { Entry } from '../src/types'
 
 const wait = (ms: number) => new Promise(r => setTimeout(r, ms))
 
@@ -11,7 +12,7 @@ describe('automatic uploads', async () => {
 
     const asyncStorage = new AsyncStorageMock()
     let uploads = 0
-    nibbana.configure({
+    nibbana.configureWithCustomUploadFunction({
       outputToConsole: false,
       uploadEntries: async (entries: Entry[]) => {},
       asyncStorage,
@@ -35,7 +36,7 @@ describe('automatic uploads', async () => {
 
     const asyncStorage = new AsyncStorageMock()
     let uploads = 0
-    nibbana.configure({
+    nibbana.configureWithCustomUploadFunction({
       outputToConsole: false,
       uploadEntries: async (entries: Entry[]) => {},
       asyncStorage,

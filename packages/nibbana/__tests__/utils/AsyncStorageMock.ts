@@ -1,5 +1,6 @@
-import { IAsyncStorage } from '../../src/types'
+import { IAsyncStorage } from 'react-native-async-storage-utils'
 
+// TODO(jan): Move this to react-native-async-storage-utils
 export default class AsyncStorageMock implements IAsyncStorage {
   public data = {}
 

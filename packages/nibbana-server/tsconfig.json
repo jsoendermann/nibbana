@@ -1,0 +1,10 @@
+{
+  "include": ["index.ts"],
+  "compilerOptions": {
+    "target": "es3",
+    "strict": true,
+    "declaration": true,
+    "moduleResolution": "node",
+    "lib": ["es2015", "es2016", "dom"]
+  }
+}

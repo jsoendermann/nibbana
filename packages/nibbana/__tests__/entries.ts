@@ -1,6 +1,7 @@
+import { Entry } from 'nibbana-types'
+import { getArray } from 'react-native-async-storage-utils'
+
 import nibbana from '../src'
-import { Entry } from '../src/types'
-import { getArray } from '../src/asyncStorageUtils'
 import AsyncStorageMock from './utils/AsyncStorageMock'
 
 const ASYNC_STORAGE_KEY = 'com.primlo.nibbana.logEntries'
@@ -8,7 +9,7 @@ const ASYNC_STORAGE_KEY = 'com.primlo.nibbana.logEntries'
 describe('entries', () => {
   it('should append entries', async () => {
     const asyncStorage = new AsyncStorageMock()
-    nibbana.configure({
+    nibbana.configureWithCustomUploadFunction({
       outputToConsole: false,
       uploadEntries: async (entries: Entry[]) => {},
       asyncStorage,
@@ -24,7 +25,7 @@ describe('entries', () => {
 
   it('should respect the queue capacity', async () => {
     const asyncStorage = new AsyncStorageMock()
-    nibbana.configure({
+    nibbana.configureWithCustomUploadFunction({
       outputToConsole: false,
       uploadEntries: async (entries: Entry[]) => {},
       asyncStorage,
@@ -40,7 +41,7 @@ describe('entries', () => {
 
   it('should log strings', async () => {
     const asyncStorage = new AsyncStorageMock()
-    nibbana.configure({
+    nibbana.configureWithCustomUploadFunction({
       outputToConsole: false,
       uploadEntries: async (entries: Entry[]) => {},
       asyncStorage,
@@ -54,7 +55,7 @@ describe('entries', () => {
 
   it('should log errors', async () => {
     const asyncStorage = new AsyncStorageMock()
-    nibbana.configure({
+    nibbana.configureWithCustomUploadFunction({
       outputToConsole: false,
       uploadEntries: async (entries: Entry[]) => {},
       asyncStorage,
@@ -70,7 +71,7 @@ describe('entries', () => {
 
   it('should log the date', async () => {
     const asyncStorage = new AsyncStorageMock()
-    nibbana.configure({
+    nibbana.configureWithCustomUploadFunction({
       outputToConsole: false,
       uploadEntries: async (entries: Entry[]) => {},
       asyncStorage,
@@ -84,7 +85,7 @@ describe('entries', () => {
 
   it('should log the severity level', async () => {
     const asyncStorage = new AsyncStorageMock()
-    nibbana.configure({
+    nibbana.configureWithCustomUploadFunction({
       outputToConsole: false,
       uploadEntries: async (entries: Entry[]) => {},
       asyncStorage,
@@ -104,7 +105,7 @@ describe('entries', () => {
 
   it('should clear entries', async () => {
     const asyncStorage = new AsyncStorageMock()
-    nibbana.configure({
+    nibbana.configureWithCustomUploadFunction({
       outputToConsole: false,
       uploadEntries: async (entries: Entry[]) => {},
       asyncStorage,

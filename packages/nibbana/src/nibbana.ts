@@ -3,12 +3,15 @@ import axios from 'axios'
 import freshId from 'fresh-id'
 const merge = require('lodash.merge')
 import { Severity, Entry } from 'nibbana-types'
-
 import * as asyncStorageUtils from 'react-native-async-storage-utils'
-import { NibbanaConfig } from './types'
+
+import { UploadEntriesFunction, NibbanaConfig } from './types'
 
 export const ASYNC_STORAGE_KEY = 'com.primlo.nibbana.logEntries'
 const NO_CONFIG_ERROR_MESSAGE = '[nibbana] You must call nibbana.configure before any other methods'
+
+declare const global: any
+const { NODE_ENV } = global.process.env
 
 // Since there's no way to atomically execute array operations on AsyncStorage,
 // we need to synchronize our access to avoid race conditions.
@@ -25,71 +28,94 @@ let superProperties: object = {}
 
 let automaticUploadsIntervalId: number | null = null
 
-const defaultValuesForOptionalConfigValues: Partial<NibbanaConfig> = {
-  outputToConsole: (global as any).process.env.NODE_ENV !== 'production',
-  capacity: 0,
-  additionalHTTPHeaders: () => ({}),
-  uploadEntries: (entries: Entry[]) =>
-    axios({
+export interface ConfigureProps {
+  endpoint: string
+  secretToken: string
+  capacity?: number
+  additionalHTTPHeaders?: () => any
+  asyncStorage?: asyncStorageUtils.IAsyncStorage
+  outputToConsole?: boolean
+}
+export const configure = (props: ConfigureProps) => {
+  let capacity: number
+  if (props.capacity == null) {
+    capacity = 0
+  } else {
+    capacity = props.capacity
+  }
+
+  let additionalHTTPHeaders = props.additionalHTTPHeaders || (() => ({}))
+
+  let asyncStorage: asyncStorageUtils.IAsyncStorage
+  if (props.asyncStorage) {
+    asyncStorage = props.asyncStorage
+  } else {
+    const { AsyncStorage } = require('react-native')
+    asyncStorage = AsyncStorage
+  }
+
+  let outputToConsole: boolean
+  if (props.outputToConsole == null) {
+    outputToConsole = NODE_ENV !== 'production'
+  } else {
+    outputToConsole = props.outputToConsole
+  }
+
+  const uploadEntries = (entries: Entry[]) => {
+    const headers = additionalHTTPHeaders()
+    return axios({
       method: 'POST',
-      url: config!.endpoint,
-      data: { secretToken: config!.secretToken, entries },
-      headers: config!.additionalHTTPHeaders,
+      url: props.endpoint,
+      data: { secretToken: props.secretToken, entries },
+      headers,
       timeout: 15 * 1000,
-    }),
+    })
+  }
+
+  config = {
+    uploadEntries,
+    asyncStorage,
+    outputToConsole,
+    capacity,
+  }
 }
 
-/**
- * Configures nibbana with the given configuration. Must be called at least once before any other function is called.
- * 
- * @param newConfig Your configuration
- */
-export const configure = (newConfig: Partial<NibbanaConfig>) => {
-  if (newConfig.uploadEntries && newConfig.additionalHTTPHeaders) {
-    throw new Error(
-      '[nibbana] You can not set both uploadEntries and ' +
-        'additionalHTTPHeaders since using your own uploadEntries function ' +
-        'means you have to take care of http headers yourself.',
-    )
+export interface ConfigureWithCustomUploadFunctionProps {
+  uploadEntries: UploadEntriesFunction
+  capacity?: number
+  asyncStorage?: asyncStorageUtils.IAsyncStorage
+  outputToConsole?: boolean
+}
+export const configureWithCustomUploadFunction = (
+  props: ConfigureWithCustomUploadFunctionProps,
+) => {
+  let capacity: number
+  if (props.capacity == null) {
+    capacity = 0
+  } else {
+    capacity = props.capacity
   }
 
-  if (newConfig.uploadEntries && newConfig.endpoint) {
-    throw new Error(
-      '[nibbana] You can not set both a custom uploadEntries function and an' +
-        'endpoint since using your own uploadEntries function ' +
-        'means you have to take care of uploading yourself.',
-    )
-  }
-  if (!newConfig.uploadEntries && !newConfig.endpoint) {
-    throw new Error(
-      '[nibbana] You must provide an endpoint if you are not using ' +
-        'a custom uploadEntries function.',
-    )
-  }
-
-  if (newConfig.uploadEntries && newConfig.secretToken) {
-    throw new Error(
-      '[nibbana] You can not set both a custom uploadEntries function and a ' +
-        'secretToken since using your own uploadEntries function ' +
-        'means you have to take care of the secretToken yourself.',
-    )
-  }
-  if (!newConfig.uploadEntries && !newConfig.secretToken) {
-    throw new Error(
-      '[nibbana] You must provide a secretToken if you are not using ' +
-        'a custom uploadEntries function.',
-    )
-  }
-
-  const defaultValuesCopy = { ...defaultValuesForOptionalConfigValues }
-  config = merge(defaultValuesCopy, newConfig)
-
-  // We have to handle this separately so that we can require 'react-native'
-  // down here instead of at the top which causes problems when running
-  // in a non-react-native environment such as tests.
-  if (!config!.asyncStorage) {
+  let asyncStorage: asyncStorageUtils.IAsyncStorage
+  if (props.asyncStorage) {
+    asyncStorage = props.asyncStorage
+  } else {
     const { AsyncStorage } = require('react-native')
-    config!.asyncStorage = AsyncStorage
+    asyncStorage = AsyncStorage
+  }
+
+  let outputToConsole: boolean
+  if (props.outputToConsole == null) {
+    outputToConsole = NODE_ENV !== 'production'
+  } else {
+    outputToConsole = props.outputToConsole
+  }
+
+  config = {
+    uploadEntries: props.uploadEntries,
+    asyncStorage,
+    outputToConsole,
+    capacity,
   }
 }
 
