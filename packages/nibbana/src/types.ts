@@ -1,10 +1,5 @@
 import { Entry } from 'nibbana-types'
-
-export interface IAsyncStorage {
-  getItem(key: string, callback?: (error?: Error, result?: string) => void): Promise<string>
-  setItem(key: string, value: string, callback?: (error?: Error) => void): Promise<void>
-  removeItem(key: string, callback?: (error?: Error) => void): Promise<void>
-}
+import { IAsyncStorage } from 'react-native-async-storage-utils'
 
 export type UploadEntriesFunction = (entries: Entry[]) => Promise<any>
 

@@ -4,8 +4,8 @@ import freshId from 'fresh-id'
 const merge = require('lodash.merge')
 import { Severity, Entry } from 'nibbana-types'
 
-import * as asyncStorageUtils from './asyncStorageUtils'
-import { NibbanaConfig, IAsyncStorage } from './types'
+import * as asyncStorageUtils from 'react-native-async-storage-utils'
+import { NibbanaConfig } from './types'
 
 export const ASYNC_STORAGE_KEY = 'com.primlo.nibbana.logEntries'
 const NO_CONFIG_ERROR_MESSAGE = '[nibbana] You must call nibbana.configure before any other methods'
@@ -26,7 +26,7 @@ let superProperties: object = {}
 let automaticUploadsIntervalId: number | null = null
 
 const defaultValuesForOptionalConfigValues: Partial<NibbanaConfig> = {
-  outputToConsole: __DEV__,
+  outputToConsole: (global as any).process.env.NODE_ENV !== 'production',
   capacity: 0,
   additionalHTTPHeaders: () => ({}),
   uploadEntries: (entries: Entry[]) =>

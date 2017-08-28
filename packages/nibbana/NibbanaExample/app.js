@@ -2,6 +2,8 @@ import React, { Component } from 'react'
 import { StyleSheet, View, Button, Platform, Dimensions, AsyncStorage, Text } from 'react-native'
 import nibbana from 'nibbana'
 
+// TODO(jan): Super parameters
+
 export default class NibbanaExample extends Component {
   componentDidMount() {
     nibbana.configure({
