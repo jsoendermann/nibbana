@@ -1,3 +1,6 @@
+// TODO(jan): Add nibbana-types to dependencies
+// TODO(jan): Think of some way to log the place in the code the log occurred in
+
 import { Lock } from 'semaphore-async-await'
 import axios from 'axios'
 import freshId from 'fresh-id'
