@@ -1,6 +1,13 @@
 {
   "name": "nibbana-server",
-  "version": "0.0.2",
+  "version": "0.0.8",
   "main": "index.js",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@types/koa": "^2.0.39",
+    "@types/koa-mount": "^2.0.18",
+    "koa": "^2.3.0",
+    "nibbana-koa-middleware": "^0.0.8",
+    "typescript": "^2.4.2"
+  }
 }

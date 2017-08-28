@@ -1,6 +1,6 @@
 {
   "name": "nibbana",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Log stuff to your server in your react native app.",
   "author": {
     "name": "Jan Soendermann",
@@ -25,8 +25,9 @@
     "@types/lodash.merge": "^4.6.3",
     "@types/react-native": "^0.47.6",
     "jest": "^20.0.4",
-    "nibbana-types": "*",
+    "nibbana-types": "^0.0.8",
     "prettier": "^1.5.3",
+    "react-native": "^0.47.2",
     "ts-jest": "^20.0.10",
     "typescript": "^2.4.2"
   },
