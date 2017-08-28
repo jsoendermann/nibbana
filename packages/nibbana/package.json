@@ -1,6 +1,6 @@
 {
   "name": "nibbana",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Log stuff to your server in your react native app.",
   "author": {
     "name": "Jan Soendermann",
