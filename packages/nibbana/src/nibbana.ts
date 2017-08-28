@@ -2,11 +2,12 @@ import { Lock } from 'semaphore-async-await'
 import axios from 'axios'
 import freshId from 'fresh-id'
 const merge = require('lodash.merge')
+import { Severity, Entry } from 'nibbana-types'
 
 import * as asyncStorageUtils from './asyncStorageUtils'
-import { Severity, Entry, NibbanaConfig, IAsyncStorage } from './types'
+import { NibbanaConfig, IAsyncStorage } from './types'
 
-const ASYNC_STORAGE_KEY = 'com.primlo.nibbana.logEntries'
+export const ASYNC_STORAGE_KEY = 'com.primlo.nibbana.logEntries'
 const NO_CONFIG_ERROR_MESSAGE = '[nibbana] You must call nibbana.configure before any other methods'
 
 // Since there's no way to atomically execute array operations on AsyncStorage,
@@ -25,7 +26,7 @@ let superProperties: object = {}
 let automaticUploadsIntervalId: number | null = null
 
 const defaultValuesForOptionalConfigValues: Partial<NibbanaConfig> = {
-  outputToConsole: (global as any).process.env.NODE_ENV !== 'production',
+  outputToConsole: __DEV__,
   capacity: 0,
   additionalHTTPHeaders: () => ({}),
   uploadEntries: (entries: Entry[]) =>
@@ -169,13 +170,20 @@ export const clearEntries = async () => {
   }
 }
 
+const consoleProps = {
+  log: console.log,
+  warn: console.warn,
+  debug: console.debug,
+  error: console.error,
+}
+
 const newEntry = async (severity: Severity, data: any[]) => {
   if (config === null) {
     throw new Error(NO_CONFIG_ERROR_MESSAGE)
   }
 
   if (config.outputToConsole) {
-    ;(console as any)[severity](...data)
+    consoleProps[severity](...data)
   }
 
   return appendEntry(severity, data)
