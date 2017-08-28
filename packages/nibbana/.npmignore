@@ -1,4 +1,7 @@
 .vscode
 .gitignore
 tsconfig.json
-index.ts
+src
+NibbanaExample
+coverage
+__tests__
