@@ -115,24 +115,29 @@ export const clearSuperProperties = () => {
   superProperties = {}
 }
 
-const appendEntry = async (severity: Severity, data: string | Error) => {
+const appendEntry = async (severity: Severity, data: any[]) => {
   if (config === null) {
     throw new Error(NO_CONFIG_ERROR_MESSAGE)
   }
+
+  const entryData = data.map(datum => {
+    if (datum instanceof Error) {
+      return {
+        message: datum.message,
+        name: datum.name,
+        stack: datum.stack,
+      }
+    }
+
+    return datum
+  })
 
   const newEntry: Partial<Entry> = {
     _id: freshId(15),
     severity,
     occurredAt: new Date(),
     superProperties,
-  }
-
-  if (data instanceof Error) {
-    newEntry.message = data.message
-    newEntry.errorName = data.name
-    newEntry.stack = data.stack
-  } else {
-    newEntry.message = data
+    data: entryData,
   }
 
   await entriesLock.acquire()
@@ -164,13 +169,13 @@ export const clearEntries = async () => {
   }
 }
 
-const newEntry = async (severity: Severity, data: string | Error) => {
+const newEntry = async (severity: Severity, data: any[]) => {
   if (config === null) {
     throw new Error(NO_CONFIG_ERROR_MESSAGE)
   }
 
   if (config.outputToConsole) {
-    console[severity](data)
+    ;(console as any)[severity](...data)
   }
 
   return appendEntry(severity, data)
@@ -180,17 +185,22 @@ const newEntry = async (severity: Severity, data: string | Error) => {
  * Use this instead of console.log.
  * @param data What to log. Can be a string or an Error.
  */
-export const log = async (data: string | Error) => newEntry('log', data)
+export const log = async (...data: any[]) => newEntry('log', data)
 /**
  * Use this instead of console.warn.
  * @param data What to log. Can be a string or an Error.
  */
-export const warn = async (data: string | Error) => newEntry('warn', data)
+export const warn = async (...data: any[]) => newEntry('warn', data)
+/**
+ * Use this instead of console.debug.
+ * @param data What to log. Can be a string or an Error.
+ */
+export const debug = async (...data: any[]) => newEntry('debug', data)
 /**
  * Use this instead of console.error.
  * @param data What to log. Can be a string or an Error.
  */
-export const error = async (data: string | Error) => newEntry('error', data)
+export const error = async (...data: any[]) => newEntry('error', data)
 
 /**
  * This forces an upload of all locally saved log entries

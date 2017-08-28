@@ -4,7 +4,7 @@ export interface IAsyncStorage {
   removeItem(key: string, callback?: (error?: Error) => void): Promise<void>
 }
 
-export type Severity = 'log' | 'warn' | 'error'
+export type Severity = 'log' | 'warn' | 'error' | 'debug'
 
 export interface Entry {
   /**
@@ -18,36 +18,20 @@ export interface Entry {
   occurredAt: Date
 
   /**
-   * The main content of your log entry
-   * 
-   * @type {string}
-   * @memberof Entry
-   */
-  message: string
-
-  /**
-   * If you log an Error object, this will be set to error.name
-   * 
-   * @type {string}
-   * @memberof Entry
-   */
-  errorName?: string
-
-  /**
-   * If you log an Error object and it comes with a stack trace, this will be set to error.stack
-   * 
-   * @type {string}
-   * @memberof Entry
-   */
-  stack?: string
-
-  /**
    * The super properties registered with your nibbana instance
    * 
    * @type {object}
    * @memberof Entry
    */
   superProperties: object
+
+  /**
+   * The data contained in this entry
+   * 
+   * @type {any[]}
+   * @memberof Entry
+   */
+  data: any[]
 }
 
 export type UploadEntriesFunction = (entries: Entry[]) => Promise<any>

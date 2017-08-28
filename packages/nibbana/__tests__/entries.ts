@@ -15,10 +15,11 @@ describe('entries', () => {
     })
     await nibbana.log('test')
     await nibbana.warn('bla')
+    await nibbana.debug('dedede')
     await nibbana.error('blubb')
 
     const savedEntries = await getArray(asyncStorage, ASYNC_STORAGE_KEY)
-    expect(savedEntries.length).toEqual(3)
+    expect(savedEntries.length).toEqual(4)
   })
 
   it('should respect the queue capacity', async () => {
@@ -48,8 +49,7 @@ describe('entries', () => {
     await nibbana.log('foobar')
 
     const savedEntries = await getArray(asyncStorage, ASYNC_STORAGE_KEY)
-    expect(savedEntries[0].message).toEqual('foobar')
-    expect(savedEntries[0].stack).toBeUndefined()
+    expect(savedEntries[0].data).toEqual(['foobar'])
   })
 
   it('should log errors', async () => {
@@ -63,9 +63,9 @@ describe('entries', () => {
     await nibbana.log(new TypeError('foobar'))
 
     const savedEntries = await getArray(asyncStorage, ASYNC_STORAGE_KEY)
-    expect(savedEntries[0].message).toEqual('foobar')
-    expect(savedEntries[0].errorName).toEqual('TypeError')
-    expect(savedEntries[0].stack).not.toBeUndefined()
+    expect(savedEntries[0].data[0].message).toEqual('foobar')
+    expect(savedEntries[0].data[0].name).toEqual('TypeError')
+    expect(savedEntries[0].data[0].stack).not.toBeUndefined()
   })
 
   it('should log the date', async () => {
@@ -92,12 +92,14 @@ describe('entries', () => {
 
     await nibbana.log(new Error('foobar'))
     await nibbana.warn(new Error('foobar'))
+    await nibbana.debug(new Error('defoobar'))
     await nibbana.error(new Error('foobar'))
 
     const savedEntries = await getArray(asyncStorage, ASYNC_STORAGE_KEY)
     expect(savedEntries[0].severity).toEqual('log')
     expect(savedEntries[1].severity).toEqual('warn')
-    expect(savedEntries[2].severity).toEqual('error')
+    expect(savedEntries[2].severity).toEqual('debug')
+    expect(savedEntries[3].severity).toEqual('error')
   })
 
   it('should clear entries', async () => {
