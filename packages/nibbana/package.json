@@ -36,7 +36,7 @@
     "semaphore-async-await": "^1.5.1"
   },
   "peerDependencies": {
-    "react-native": "^0.47.2"
+    "react-native": "*"
   },
   "jest": {
     "transform": {
