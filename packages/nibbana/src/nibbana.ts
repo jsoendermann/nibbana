@@ -30,6 +30,7 @@ let automaticUploadsIntervalId: number | null = null
 
 export interface ConfigureProps {
   endpoint: string
+  // TODO(jan): Rename this to nibbanaToken
   secretToken: string
   capacity?: number
   additionalHTTPHeaders?: () => any
