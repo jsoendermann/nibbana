@@ -34,7 +34,7 @@ let automaticUploadsIntervalId: number | null = null
 export interface ConfigureProps {
   endpoint: string
   // TODO(jan): Rename this to nibbanaToken
-  secretToken: string
+  nibbanaToken: string
   capacity?: number
   additionalHTTPHeaders?: () => any
   asyncStorage?: asyncStorageUtils.IAsyncStorage
@@ -70,7 +70,7 @@ export const configure = (props: ConfigureProps) => {
     return axios({
       method: 'POST',
       url: props.endpoint,
-      data: { secretToken: props.secretToken, entries },
+      data: { nibbanaToken: props.nibbanaToken, entries },
       headers,
       timeout: 15 * 1000,
     })
