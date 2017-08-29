@@ -73,7 +73,7 @@ export const configure = (props: ConfigureProps) => {
       data: { nibbanaToken: props.nibbanaToken, entries },
       headers,
       timeout: 15 * 1000,
-    })
+    }).catch(() => {}) // Swallow errors
   }
 
   config = {
