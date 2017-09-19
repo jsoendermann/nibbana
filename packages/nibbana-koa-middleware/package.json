@@ -1,6 +1,6 @@
 {
   "name": "nibbana-koa-middleware",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "main": "index.js",
   "license": "Apache-2.0",
   "scripts": {
@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "@types/koa": "^2.0.39",
-    "nibbana-types": "^0.0.8"
+    "nibbana-types": "^0.0.18"
   },
   "dependencies": {
     "typescript": "^2.4.2"
