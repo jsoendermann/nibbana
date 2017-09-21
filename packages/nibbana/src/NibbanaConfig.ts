@@ -1,7 +1,7 @@
-import { Entry } from 'nibbana-types'
+import { NibbanaEvent } from 'nibbana-types'
 import { IAsyncStorage } from 'react-native-async-storage-utils'
 
-export type UploadEntriesFunction = (entries: Entry[]) => Promise<any>
+export type UploadEntriesFunction = (events: NibbanaEvent[]) => Promise<any>
 
 export interface NibbanaConfig {
   /**
@@ -18,11 +18,4 @@ export interface NibbanaConfig {
    * @memberof NibbanaConfig
    */
   asyncStorage: IAsyncStorage
-
-  /**
-   * Whether besides uploading entries, we should also write to the console.
-   */
-  outputToConsole: boolean
-
-  capacity: number
 }

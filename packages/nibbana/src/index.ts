@@ -1,2 +1,2 @@
-import * as nibbana from './nibbana'
-export default nibbana
+import Nibbana from './Nibbana'
+export default Nibbana.shared()

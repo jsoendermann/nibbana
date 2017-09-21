@@ -1,299 +1,237 @@
-// TODO(jan): Add nibbana-types to dependencies
-// TODO(jan): Think of some way to log the place in the code the log occurred in
-
-import { Lock } from 'semaphore-async-await'
-import axios from 'axios'
 import freshId from 'fresh-id'
-const merge = require('lodash.merge')
-import { Severity, Entry } from 'nibbana-types'
-import * as asyncStorageUtils from 'react-native-async-storage-utils'
+import axios from 'axios'
+import {
+  IAsyncStorage,
+  getObject,
+  getArray,
+  setValue,
+  enqueue,
+  filterArray,
+} from 'react-native-async-storage-utils'
+import { merge, debounce } from 'lodash'
+import { Lock } from 'semaphore-async-await'
+import { NibbanaEvent, NibbanaUserEvent } from 'nibbana-types'
 
-import { UploadEntriesFunction, NibbanaConfig } from './types'
+import { NibbanaConfig } from './NibbanaConfig'
 
-export const ASYNC_STORAGE_KEY = 'com.primlo.nibbana.logEntries'
-const NO_CONFIG_ERROR_MESSAGE = '[nibbana] You must call nibbana.configure before any other methods'
+const NIBBANA_VERSION = require('../package.json').version
 
-declare const global: any
-const { NODE_ENV } = global.process.env
+const ASYNC_STORAGE_USER_IDENTIFICATION_KEY = 'nibbana.userIdentification'
+const ASYNC_STORAGE_USERS_FIRST_IDENTIFIED_AT = 'nibbana.usersFirstIdentifiedAt'
+const ASYNC_STORAGE_PERSISTENT_SUPER_PROPERTIES_KEY =
+  'nibbana.persistentSuperProperties'
+const ASYNC_STORAGE_EVENTS_KEY = 'nibbana.events'
 
-// Since there's no way to atomically execute array operations on AsyncStorage,
-// we need to synchronize our access to avoid race conditions.
-const entriesLock = new Lock()
+const UPLOAD_TIMEOUT = 15 * 1000
+const UPLOAD_INTERVAL = 60 * 1000
 
-// This is to avoid having multiple uploads run in parallel which would cause
-// entries to be logged multiple times
-const uploadLock = new Lock()
+export default class Nibbana {
+  private static _shared: Nibbana | null = null
+  private config: NibbanaConfig | null = null
+  private userIdentification: string | null = null
 
-let config: NibbanaConfig | null = null
+  private uploadLock = new Lock()
+  private entriesLock = new Lock()
 
-// These are added to each entry
-let superProperties: object = {}
+  private transientSuperProperties: any = {}
+  private persistentSuperProperties: any = {}
 
-let automaticUploadsIntervalId: number | null = null
+  private startTimerCalledAtDates: any = {}
 
-export interface ConfigureProps {
-  endpoint: string
-  // TODO(jan): Rename this to nibbanaToken
-  nibbanaToken: string
-  capacity?: number
-  additionalHTTPHeaders?: () => any
-  asyncStorage?: asyncStorageUtils.IAsyncStorage
-  outputToConsole?: boolean
-}
-export const configure = (props: ConfigureProps) => {
-  let capacity: number
-  if (props.capacity == null) {
-    capacity = 0
-  } else {
-    capacity = props.capacity
+  constructor() {
+    if (Nibbana._shared) {
+      throw new Error('The Nibbana class is a singleton')
+    }
+
+    setInterval(() => this.uploadEvents(), UPLOAD_INTERVAL)
+
+    Nibbana._shared = this
   }
 
-  let additionalHTTPHeaders = props.additionalHTTPHeaders || (() => ({}))
+  public static shared() {
+    if (Nibbana._shared) {
+      return Nibbana._shared
+    } else {
+      return new Nibbana()
+    }
+  }
 
-  let asyncStorage: asyncStorageUtils.IAsyncStorage
-  if (props.asyncStorage) {
-    asyncStorage = props.asyncStorage
-  } else {
+  private ensureConfig(): NibbanaConfig {
+    if (!this.config) {
+      throw new Error(
+        'You have to call nibbana.initialize before any other method',
+      )
+    }
+    return this.config
+  }
+
+  public async initialize(endpoint: string, nibbanaToken: string) {
     const { AsyncStorage } = require('react-native')
-    asyncStorage = AsyncStorage
+
+    this.config = {
+      asyncStorage: AsyncStorage,
+      uploadEntries: (events: NibbanaEvent[]) =>
+        axios({
+          method: 'POST',
+          url: endpoint,
+          data: { events },
+          headers: {
+            'nibbana-token': nibbanaToken,
+          },
+          timeout: UPLOAD_TIMEOUT,
+        }).catch(() => null),
+    }
+
+    this.persistentSuperProperties = await getObject(
+      this.config.asyncStorage,
+      ASYNC_STORAGE_PERSISTENT_SUPER_PROPERTIES_KEY,
+    )
+    this.userIdentification = await this.config.asyncStorage.getItem(
+      ASYNC_STORAGE_USER_IDENTIFICATION_KEY,
+    )
+
+    return this.uploadEvents()
   }
 
-  let outputToConsole: boolean
-  if (props.outputToConsole == null) {
-    outputToConsole = NODE_ENV !== 'production'
-  } else {
-    outputToConsole = props.outputToConsole
+  // _initializeWithConfig
+
+  public async identify(userIdentification: string) {
+    const config = this.ensureConfig()
+
+    if (!userIdentification) {
+      throw new Error('userIdentification must not be falsy')
+    }
+
+    await config.asyncStorage.setItem(
+      ASYNC_STORAGE_USER_IDENTIFICATION_KEY,
+      userIdentification,
+    )
+
+    const usersFirstIdentifiedAt: any = await getObject(
+      config.asyncStorage,
+      ASYNC_STORAGE_USERS_FIRST_IDENTIFIED_AT,
+    )
+    if (!usersFirstIdentifiedAt[userIdentification]) {
+      usersFirstIdentifiedAt[userIdentification] = new Date()
+      await setValue(
+        config.asyncStorage,
+        ASYNC_STORAGE_USERS_FIRST_IDENTIFIED_AT,
+        usersFirstIdentifiedAt,
+      )
+    }
   }
 
-  const uploadEntries = (entries: Entry[]) => {
-    const headers = additionalHTTPHeaders()
-    return axios({
-      method: 'POST',
-      url: props.endpoint,
-      data: { nibbanaToken: props.nibbanaToken, entries },
-      headers,
-      timeout: 15 * 1000,
-    }).catch(() => {}) // Swallow errors
-  }
+  public async setSuperProperties(superProperties: object, persistent = false) {
+    const config = this.ensureConfig()
 
-  config = {
-    uploadEntries,
-    asyncStorage,
-    outputToConsole,
-    capacity,
-  }
-}
+    if (persistent) {
+      merge(this.persistentSuperProperties, superProperties)
 
-export interface ConfigureWithCustomUploadFunctionProps {
-  uploadEntries: UploadEntriesFunction
-  capacity?: number
-  asyncStorage?: asyncStorageUtils.IAsyncStorage
-  outputToConsole?: boolean
-}
-export const configureWithCustomUploadFunction = (
-  props: ConfigureWithCustomUploadFunctionProps,
-) => {
-  let capacity: number
-  if (props.capacity == null) {
-    capacity = 0
-  } else {
-    capacity = props.capacity
-  }
+      for (const key of Object.keys(superProperties)) {
+        delete this.transientSuperProperties[key]
+      }
+    } else {
+      merge(this.transientSuperProperties, superProperties)
 
-  let asyncStorage: asyncStorageUtils.IAsyncStorage
-  if (props.asyncStorage) {
-    asyncStorage = props.asyncStorage
-  } else {
-    const { AsyncStorage } = require('react-native')
-    asyncStorage = AsyncStorage
-  }
-
-  let outputToConsole: boolean
-  if (props.outputToConsole == null) {
-    outputToConsole = NODE_ENV !== 'production'
-  } else {
-    outputToConsole = props.outputToConsole
-  }
-
-  config = {
-    uploadEntries: props.uploadEntries,
-    asyncStorage,
-    outputToConsole,
-    capacity,
-  }
-}
-
-/**
- * Sets your super properties. Super properties get saved with every entry.
- * @param newSuperProperties The new super properties
- */
-export const setSuperProperties = (newSuperProperties: object) => {
-  clearSuperProperties()
-  extendSuperProperties(newSuperProperties)
-}
-
-/**
- * Extends your existing super properties
- * @param additionalSuperProperties An object to be merged into your super properties
- */
-export const extendSuperProperties = (additionalSuperProperties: object) =>
-  merge(superProperties, additionalSuperProperties)
-
-/**
- * Resets all super properties
- */
-export const clearSuperProperties = () => {
-  superProperties = {}
-}
-
-const appendEntry = async (severity: Severity, data: any[]) => {
-  if (config === null) {
-    throw new Error(NO_CONFIG_ERROR_MESSAGE)
-  }
-
-  const entryData = data.map(datum => {
-    if (datum instanceof Error) {
-      return {
-        message: datum.message,
-        name: datum.name,
-        stack: datum.stack,
+      for (const key of Object.keys(superProperties)) {
+        delete this.persistentSuperProperties[key]
       }
     }
 
-    return datum
-  })
-
-  const newEntry: Partial<Entry> = {
-    _id: freshId(15),
-    severity,
-    occurredAt: new Date(),
-    superProperties,
-    data: entryData,
-  }
-
-  await entriesLock.acquire()
-  try {
-    await asyncStorageUtils.enqueueWithCapacity(
+    await setValue(
       config.asyncStorage,
-      ASYNC_STORAGE_KEY,
-      newEntry,
-      config.capacity,
+      ASYNC_STORAGE_PERSISTENT_SUPER_PROPERTIES_KEY,
+      this.persistentSuperProperties,
     )
-  } finally {
-    entriesLock.release()
-  }
-}
-
-/**
- * Clears all locally saved log entries.
- */
-export const clearEntries = async () => {
-  if (config === null) {
-    throw new Error(NO_CONFIG_ERROR_MESSAGE)
   }
 
-  await entriesLock.acquire()
-  try {
-    await config.asyncStorage.removeItem(ASYNC_STORAGE_KEY)
-  } finally {
-    entriesLock.release()
-  }
-}
+  public async unsetSuperProperty(superPropertyName: string) {
+    const config = this.ensureConfig()
 
-const consoleProps = {
-  log: console.log,
-  warn: console.warn,
-  debug: console.debug,
-  error: console.error,
-}
-
-const newEntry = async (severity: Severity, data: any[]) => {
-  if (config === null) {
-    throw new Error(NO_CONFIG_ERROR_MESSAGE)
-  }
-
-  if (config.outputToConsole) {
-    consoleProps[severity](...data)
-  }
-
-  return appendEntry(severity, data)
-}
-
-/**
- * Use this instead of console.log.
- * @param data What to log. Can be a string or an Error.
- */
-export const log = async (...data: any[]) => newEntry('log', data)
-/**
- * Use this instead of console.warn.
- * @param data What to log. Can be a string or an Error.
- */
-export const warn = async (...data: any[]) => newEntry('warn', data)
-/**
- * Use this instead of console.debug.
- * @param data What to log. Can be a string or an Error.
- */
-export const debug = async (...data: any[]) => newEntry('debug', data)
-/**
- * Use this instead of console.error.
- * @param data What to log. Can be a string or an Error.
- */
-export const error = async (...data: any[]) => newEntry('error', data)
-
-/**
- * This forces an upload of all locally saved log entries
- */
-export const uploadNow = async () => {
-  if (config === null) {
-    throw new Error(NO_CONFIG_ERROR_MESSAGE)
-  }
-
-  await uploadLock.acquire()
-  try {
-    const entriesToBeUploaded = await asyncStorageUtils.getArray(
+    delete this.transientSuperProperties[superPropertyName]
+    delete this.persistentSuperProperties[superPropertyName]
+    await setValue(
       config.asyncStorage,
-      ASYNC_STORAGE_KEY,
+      ASYNC_STORAGE_PERSISTENT_SUPER_PROPERTIES_KEY,
+      this.persistentSuperProperties,
     )
-    if (entriesToBeUploaded.length === 0) {
+  }
+
+  public async trackEvent(name: string, payload: object) {
+    const config = this.ensureConfig()
+
+    const event: NibbanaUserEvent = {
+      _id: freshId(),
+      occurredAt: new Date(),
+      type: 'USER_EVENT',
+      eventName: name,
+      eventPayload: payload,
+      userIdentification: this.userIdentification,
+      superProperties: {
+        ...this.persistentSuperProperties,
+        ...this.transientSuperProperties,
+      },
+      context: {
+        nibbanaVersion: NIBBANA_VERSION,
+      },
+    }
+
+    if (this.startTimerCalledAtDates[name]) {
+      event.duration = +new Date() - +this.startTimerCalledAtDates[name]
+      delete this.startTimerCalledAtDates[name]
+    }
+
+    await this.entriesLock.acquire()
+    try {
+      await enqueue(config.asyncStorage, ASYNC_STORAGE_EVENTS_KEY, event)
+    } finally {
+      this.entriesLock.release()
+    }
+
+    this.uploadEvents()
+  }
+
+  startTimerForEvent(eventName: string) {
+    this.startTimerCalledAtDates[eventName] = new Date()
+  }
+
+  clearTimerForEvent(eventName: string) {
+    delete this.startTimerCalledAtDates[eventName]
+  }
+
+  private async uploadEvents() {
+    if (!this.config) {
       return
     }
 
-    await config.uploadEntries(entriesToBeUploaded)
-
-    const idsOfUploadedEntries: string[] = entriesToBeUploaded.map((e: Entry) => e._id)
-
-    await entriesLock.acquire()
+    await this.uploadLock.acquire()
     try {
-      await asyncStorageUtils.filterArray(
-        config.asyncStorage,
-        ASYNC_STORAGE_KEY,
-        e => !idsOfUploadedEntries.includes(e._id),
+      const eventsToBeUploaded = await getArray(
+        this.config.asyncStorage,
+        ASYNC_STORAGE_EVENTS_KEY,
       )
+      if (eventsToBeUploaded.length === 0) {
+        return
+      }
+
+      await this.config.uploadEntries(eventsToBeUploaded)
+
+      const idsOfUploadedEntries: string[] = eventsToBeUploaded.map(
+        (e: NibbanaEvent) => e._id,
+      )
+
+      await this.entriesLock.acquire()
+      try {
+        await filterArray(
+          this.config.asyncStorage,
+          ASYNC_STORAGE_EVENTS_KEY,
+          e => !idsOfUploadedEntries.includes(e._id),
+        )
+      } finally {
+        this.entriesLock.release()
+      }
     } finally {
-      entriesLock.release()
+      this.uploadLock.release()
     }
-  } finally {
-    uploadLock.release()
-  }
-}
-
-/**
- * This starts periodic uploads of locally saved entries in the background
- * @param frequencyInSeconds The upload frequency in seconds. Don't set this to a value too low.
- */
-export const startAutomaticUploads = (frequencyInSeconds: number = 5 * 60) => {
-  if (automaticUploadsIntervalId !== null) {
-    console.log(`[nibbana] automatic uploads already in progress`)
-    return
-  }
-  automaticUploadsIntervalId = setInterval(uploadNow, frequencyInSeconds * 1000)
-}
-
-/**
- * This stops periodic background uploads
- */
-export const stopAutomaticUploads = () => {
-  if (automaticUploadsIntervalId !== null) {
-    clearInterval(automaticUploadsIntervalId)
   }
 }

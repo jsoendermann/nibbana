@@ -2,10 +2,10 @@
   "include": ["src/**/*.ts"],
   "compilerOptions": {
     "outDir": "dist",
-    "target": "es6",
+    "target": "es5",
     "strict": true,
     "declaration": true,
-
+    "experimentalDecorators": true,
     "moduleResolution": "node",
     "lib": ["es2015", "es2016", "dom"]
   }

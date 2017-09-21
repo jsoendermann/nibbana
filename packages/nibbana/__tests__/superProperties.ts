@@ -1,7 +1,7 @@
-import { Entry } from 'nibbana-types'
+import { NibbanaEvent } from 'nibbana-types'
+import { AsyncStorageMock } from 'react-native-async-storage-utils'
 
 import nibbana from '../src'
-import AsyncStorageMock from './utils/AsyncStorageMock'
 
 describe('super properties', () => {
   it('should have empty default super properties', () => {
