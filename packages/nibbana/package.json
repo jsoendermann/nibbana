@@ -1,6 +1,6 @@
 {
   "name": "nibbana",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "description": "Log stuff to your server in your react native app.",
   "author": {
     "name": "Jan Soendermann",
@@ -34,8 +34,8 @@
     "axios": "^0.16.2",
     "fresh-id": "^1.1.0",
     "lodash": "^4.17.4",
-    "nibbana-types": "^0.0.20",
-    "react-native-async-storage-utils": "^1.0.0",
+    "nibbana-types": "^0.0.21",
+    "react-native-async-storage-utils": "^1.1.0",
     "semaphore-async-await": "^1.5.1"
   },
   "peerDependencies": {
