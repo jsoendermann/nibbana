@@ -1,6 +1,6 @@
 {
   "name": "nibbana-server",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "main": "index.js",
   "license": "Apache-2.0",
   "scripts": {
@@ -12,7 +12,7 @@
     "koa": "^2.3.0",
     "koa-bodyparser": "^4.2.0",
     "koa-mount": "^3.0.0",
-    "nibbana-koa-middleware": "^0.0.21"
+    "nibbana-koa-middleware": "^0.0.22"
   },
   "devDependencies": {
     "@types/koa": "^2.0.39",
