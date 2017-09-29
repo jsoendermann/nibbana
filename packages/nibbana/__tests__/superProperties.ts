@@ -5,7 +5,7 @@ import nibbana from '../src'
 
 describe('super properties', () => {
   it('should have empty default super properties', () => {
-    nibbana.configureWithCustomUploadFunction({
+    nibbana.nibbana.configureWithCustomUploadFunction({
       outputToConsole: false,
       uploadEntries: async (entries: Entry[]) => {
         expect(entries[0].superProperties).toEqual({})

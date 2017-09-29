@@ -1,7 +1,7 @@
-import { NibbanaEvent } from 'nibbana-types'
+import { NibbanaEntry } from './NibbanaEntry'
 import { IAsyncStorage } from 'react-native-async-storage-utils'
 
-export type UploadEntriesFunction = (events: NibbanaEvent[]) => Promise<any>
+export type UploadEntriesFunction = (entries: NibbanaEntry[]) => Promise<any>
 
 export interface NibbanaConfig {
   /**
