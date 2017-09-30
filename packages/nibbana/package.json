@@ -1,6 +1,6 @@
 {
   "name": "nibbana",
-  "version": "0.0.37",
+  "version": "0.0.41",
   "description": "Log stuff to your server in your react native app.",
   "author": {
     "name": "Jan Soendermann",
@@ -34,6 +34,7 @@
     "axios": "^0.16.2",
     "fresh-id": "^1.1.0",
     "lodash": "^4.17.4",
+    "mongodb-extended-json": "^1.10.0",
     "react-native-async-storage-utils": "^1.1.0",
     "semaphore-async-await": "^1.5.1"
   },
@@ -46,7 +47,12 @@
       ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
     "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
-    "moduleFileExtensions": ["ts", "tsx", "js", "json"],
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "json"
+    ],
     "testPathIgnorePatterns": [
       "/node_modules/",
       "/__tests__/utils/",
