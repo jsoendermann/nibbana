@@ -265,6 +265,15 @@ export default class Nibbana {
       }
     } catch (e) {}
 
+    try {
+      const { Dimensions } = require('react-native')
+
+      context = {
+        ...context,
+        windowDimensions: Dimensions.get('window'),
+      }
+    } catch (e) {}
+
     return context
   }
 
