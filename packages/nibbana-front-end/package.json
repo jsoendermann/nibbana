@@ -1,6 +1,6 @@
 {
   "name": "nibbana-front-end",
-  "version": "0.0.46",
+  "version": "0.0.47",
   "main": "index.js",
   "license": "Apache-2.0",
   "devDependencies": {
