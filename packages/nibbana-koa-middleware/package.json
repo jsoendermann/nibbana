@@ -1,6 +1,6 @@
 {
   "name": "nibbana-koa-middleware",
-  "version": "0.0.42",
+  "version": "0.0.43",
   "main": "index.js",
   "license": "Apache-2.0",
   "scripts": {
@@ -16,9 +16,9 @@
     "typescript": "^2.5.3"
   },
   "dependencies": {
+    "extended-json-js": "^0.3.0",
     "kcors": "^2.2.1",
     "koa-bodyparser": "^4.2.0",
-    "koa-router": "^7.2.1",
-    "mongodb-extended-json": "^1.10.0"
+    "koa-router": "^7.2.1"
   }
 }
