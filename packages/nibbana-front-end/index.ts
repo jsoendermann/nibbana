@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { Observable } from 'rxjs'
+const { stringify } = require('extended-json-js')
 
 /**
  * Runs the given aggregation pipeline on the nibbana collection on the server and returns a promise of the result.
@@ -20,7 +21,7 @@ export const evaluate = async (
       'nibbana-api-secret': apiSecret,
     },
     data: {
-      pipeline,
+      pipelineString: stringify(pipeline),
     },
     maxContentLength: 50 * 1000 * 1000 * 1000,
   }).then(d => d.data as any[])

@@ -1,7 +1,7 @@
 export interface NibbanaEntry {
   _id: string
   occurredAt: Date
-  type: 'EVENT' | 'ERROR' | 'IDENTIFY'
+  type: 'EVENT' | 'ERROR'
 
   userIdentification: string | null
 
@@ -26,8 +26,4 @@ export interface NibbanaLoggedError extends NibbanaEntry {
   stack: string | null
 
   payload: object
-}
-
-export interface NibbanaIdentify extends NibbanaEntry {
-  type: 'IDENTIFY'
 }

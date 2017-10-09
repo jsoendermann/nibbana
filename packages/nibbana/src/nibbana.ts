@@ -10,13 +10,9 @@ import {
 } from 'react-native-async-storage-utils'
 import { get, merge, debounce } from 'lodash'
 import { Lock } from 'semaphore-async-await'
-import {
-  NibbanaEntry,
-  NibbanaEvent,
-  NibbanaLoggedError,
-  NibbanaIdentify,
-} from './NibbanaEntry'
+const { stringify } = require('extended-json-js')
 
+import { NibbanaEntry, NibbanaEvent, NibbanaLoggedError } from './NibbanaEntry'
 import { NibbanaConfig } from './NibbanaConfig'
 
 const NIBBANA_VERSION = require('../package.json').version
@@ -27,7 +23,6 @@ try {
 } catch (e) {}
 
 const ASYNC_STORAGE_USER_IDENTIFICATION_KEY = 'nibbana.userIdentification'
-const ASYNC_STORAGE_USERS_FIRST_IDENTIFIED_AT = 'nibbana.usersFirstIdentifiedAt'
 const ASYNC_STORAGE_PERSISTENT_SUPER_PROPERTIES_KEY =
   'nibbana.persistentSuperProperties'
 const ASYNC_STORAGE_ENTRIES_KEY = 'nibbana.entries'
@@ -116,7 +111,7 @@ export default class Nibbana {
           axios({
             method: 'POST',
             url: `${endpoint}/upload-entries`,
-            data: { entries },
+            data: { entriesString: stringify(entries) },
             headers: {
               'nibbana-token': nibbanaToken,
             },
@@ -159,37 +154,6 @@ export default class Nibbana {
       ASYNC_STORAGE_USER_IDENTIFICATION_KEY,
       userIdentification,
     )
-
-    const usersFirstIdentifiedAt: any = await getObject(
-      config.asyncStorage,
-      ASYNC_STORAGE_USERS_FIRST_IDENTIFIED_AT,
-    )
-    if (!usersFirstIdentifiedAt[userIdentification]) {
-      usersFirstIdentifiedAt[userIdentification] = new Date()
-      await setValue(
-        config.asyncStorage,
-        ASYNC_STORAGE_USERS_FIRST_IDENTIFIED_AT,
-        usersFirstIdentifiedAt,
-      )
-    }
-
-    const entry: NibbanaIdentify = {
-      _id: freshId(),
-      occurredAt: new Date(),
-      type: 'IDENTIFY',
-      userIdentification,
-      superProperties: {
-        ...this.persistentSuperProperties,
-        ...this.transientSuperProperties,
-      },
-    }
-
-    await this.entriesLock.acquire()
-    try {
-      await enqueue(config.asyncStorage, ASYNC_STORAGE_ENTRIES_KEY, entry)
-    } finally {
-      this.entriesLock.release()
-    }
   }
 
   /**
@@ -199,7 +163,7 @@ export default class Nibbana {
    * @param {boolean} [persistent=false] Whether the super properties you are calling the function with should be persisted between app launches.
    * @memberof Nibbana
    */
-  public async extendSuperProperties(
+  public async registerSuperProperties(
     superProperties: object,
     persistent = false,
   ) {

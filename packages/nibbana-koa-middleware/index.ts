@@ -3,6 +3,7 @@ import * as Router from 'koa-router'
 import * as cors from 'kcors'
 import * as bodyParser from 'koa-bodyparser'
 import { Collection } from 'mongodb'
+const { parse } = require('extended-json-js')
 
 export default (
   getCollection: () => Promise<Collection>,
@@ -26,10 +27,14 @@ export default (
       ctx.throw(403, 'Incorrect secret')
     }
 
-    const { pipeline } = ctx.request.body
+    const { pipelineString } = ctx.request.body
+    if (!pipelineString) {
+      ctx.throw(400, 'pipelineString is falsy')
+    }
+
+    const pipeline = parse(pipelineString)
 
     const collection = await getCollection()
-
     const result = await collection.aggregate(pipeline).toArray()
 
     ctx.body = result
@@ -45,7 +50,12 @@ export default (
 
     const collection = await getCollection()
 
-    const entries = ctx.request.body.entries || []
+    const entriesString = ctx.request.body.entriesString
+    if (!entriesString) {
+      return
+    }
+
+    const entries = parse(entriesString)
 
     for (const entry of entries) {
       await collection.update({ _id: entry._id }, entry, { upsert: true })
