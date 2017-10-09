@@ -1,6 +1,6 @@
 {
   "name": "nibbana-front-end",
-  "version": "0.0.41",
+  "version": "0.0.42",
   "main": "index.js",
   "license": "Apache-2.0",
   "devDependencies": {
@@ -15,7 +15,6 @@
   "dependencies": {
     "axios": "^0.16.2",
     "mongodb-extended-json": "^1.10.0",
-    "rxjs": "^5.4.3",
-    "serialize-javascript": "^1.4.0"
+    "rxjs": "^5.4.3"
   }
 }
