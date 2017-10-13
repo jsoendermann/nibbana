@@ -238,6 +238,7 @@ export default class Nibbana {
 
     let context: any = {
       nibbanaVersion: NIBBANA_VERSION,
+      jsAppVersion: APP_VERSION,
       locale,
     }
 
@@ -261,7 +262,6 @@ export default class Nibbana {
         userAgent: DeviceInfo.getUserAgent(),
         nativeAppVersion: DeviceInfo.getVersion(),
         buildNumber: DeviceInfo.getBuildNumber(),
-        jsAppVersion: APP_VERSION,
       }
     } catch (e) {}
 
