@@ -94,10 +94,6 @@ export default class Nibbana {
    */
   public async initialize(config: NibbanaConfig): Promise<void>
   public async initialize(...args: any[]) {
-    if (this.config) {
-      throw new Error('nibbana has already been initialized')
-    }
-
     if (args.length === 1) {
       this.config = args[0]
     } else {
