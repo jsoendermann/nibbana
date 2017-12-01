@@ -12,8 +12,10 @@ import { get, merge, debounce } from 'lodash'
 import { Lock } from 'semaphore-async-await'
 const { stringify } = require('extended-json-js')
 
-import { NibbanaEntry, NibbanaEvent, NibbanaLoggedError } from './NibbanaEntry'
+import { NibbanaEntry, NibbanaEvent, NibbanaError } from './NibbanaEntry'
 import { NibbanaConfig } from './NibbanaConfig'
+
+declare const global: any
 
 const NIBBANA_VERSION = require('../package.json').version
 let APP_VERSION: string | null = null
@@ -44,12 +46,28 @@ export default class Nibbana {
 
   private startTimerCalledAtDates: any = {}
 
+  private defaultGlobalExceptionHandler: Function
+
   constructor() {
     if (Nibbana._shared) {
       throw new Error('The Nibbana class is a singleton')
     }
 
+    this.defaultGlobalExceptionHandler = global.ErrorUtils.getGlobalHandler()
+
+    // global.ErrorUtils.setGlobalHandler(this.globalExceptionHandler)
+
+    // AppState.addEventListener('change', (nextAppState: string) => {
+    //   console.log(nextAppState)
+    // })
+
     Nibbana._shared = this
+  }
+
+  private globalExceptionHandler = (...args: any[]) => {
+    console.log('globalExceptionHandler', args)
+
+    this.defaultGlobalExceptionHandler(...args)
   }
 
   /**
@@ -114,10 +132,6 @@ export default class Nibbana {
             timeout: UPLOAD_TIMEOUT,
           }).catch(() => null),
       }
-
-      // AppState.addEventListener('change', (nextAppState: string) => {
-      //   console.log(nextAppState)
-      // })
     }
 
     this.persistentSuperProperties = await getObject(
@@ -341,7 +355,7 @@ export default class Nibbana {
   async logError(error: Error, payload: object = {}) {
     const config = this.ensureConfig()
 
-    const errorEntry: NibbanaLoggedError = {
+    const errorEntry: NibbanaError = {
       _id: freshId(),
       occurredAt: new Date(),
       type: 'ERROR',

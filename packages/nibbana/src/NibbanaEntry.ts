@@ -1,7 +1,7 @@
 export interface NibbanaEntry {
   _id: string
   occurredAt: Date
-  type: 'EVENT' | 'ERROR'
+  type: 'EVENT' | 'ERROR' | 'JS_CRASH'
 
   userIdentification: string | null
 
@@ -18,8 +18,18 @@ export interface NibbanaEvent extends NibbanaEntry {
   duration?: number
 }
 
-export interface NibbanaLoggedError extends NibbanaEntry {
+export interface NibbanaError extends NibbanaEntry {
   type: 'ERROR'
+
+  message: string
+  name: string
+  stack: string | null
+
+  payload: object
+}
+
+export interface NibbanaJSCrash extends NibbanaEntry {
+  type: 'JS_CRASH'
 
   message: string
   name: string
